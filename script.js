@@ -23,19 +23,18 @@ const gameStart = () => {
   drawSnake();
 
   let { x: headX, y: headY } = snake[0];
-  console.log(headX, headY);
   switch (direction) {
     case "left":
-      headX -= box;
+      headX = headX === 0 * box ? 15 * box : headX - box;
       break;
     case "right":
-      headX = headX === 16 * box ? 0 : headX + box;
+      headX = headX === 15 * box ? 0 : headX + box;
       break;
     case "up":
-      headY -= box;
+      headY = headY === 0 * box ? 15 * box : headY - box;
       break;
     case "down":
-      headY -= box;
+      headY = headY === 15 * box ? 0 : headY + box;
       break;
     default:
       break;
@@ -50,4 +49,24 @@ const refreshRender = () => {
   }, 100);
 };
 
+const changeDirection = (pressKeyEvent) => {
+  switch (pressKeyEvent.key) {
+    case "ArrowLeft":
+      direction = direction === "right" ? "right" : "left";
+      break;
+    case "ArrowRight":
+      direction = direction === "left" ? "left" : "right";
+      break;
+    case "ArrowUp":
+      direction = direction === "down" ? "down" : "up";
+      break;
+    case "ArrowDown":
+      direction = direction === "up" ? "up" : "down";
+      break;
+    default:
+      break;
+  }
+};
+
+window.addEventListener("keydown", changeDirection);
 let gameRender = refreshRender();
