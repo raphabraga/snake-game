@@ -1,16 +1,19 @@
 let canvas = document.getElementById("snake");
 let context = canvas.getContext("2d");
 let box = 32;
+let direction = "right";
+let boardSize = 16;
+let snakeInitial = 8;
 let snake = [];
 snake[0] = {
-  x: 8 * box,
-  y: 8 * box,
+  x: snakeInitial * box,
+  y: snakeInitial * box,
 };
-let direction = "right";
+let foodPosition = null;
 
 const createBackground = () => {
   context.fillStyle = "lightgreen";
-  context.fillRect(0, 0, 16 * box, 16 * box);
+  context.fillRect(0, 0, boardSize * box, boardSize * box);
 };
 
 const drawSnake = () => {
@@ -18,23 +21,45 @@ const drawSnake = () => {
   snake.forEach((el) => context.fillRect(el.x, el.y, box, box));
 };
 
+const setFood = () => {
+  let randomPosition;
+  do {
+    randomPosition = {
+      x: box * Math.floor(boardSize * Math.random()),
+      y: box * Math.floor(boardSize * Math.random()),
+    };
+  } while (snake.some((el) => el === randomPosition));
+  foodPosition = randomPosition;
+};
+
+const drawFood = () => {
+  context.fillStyle = "red";
+  context.fillRect(foodPosition.x, foodPosition.y, box, box);
+};
+
 const gameStart = () => {
   createBackground();
   drawSnake();
+  if (
+    foodPosition === null ||
+    (foodPosition?.x === snake[0].x && foodPosition?.y === snake[0].y)
+  )
+    setFood();
+  drawFood();
 
   let { x: headX, y: headY } = snake[0];
   switch (direction) {
     case "left":
-      headX = headX === 0 * box ? 15 * box : headX - box;
+      headX = headX === 0 * box ? (boardSize - 1) * box : headX - box;
       break;
     case "right":
-      headX = headX === 15 * box ? 0 : headX + box;
+      headX = headX === (boardSize - 1) * box ? 0 : headX + box;
       break;
     case "up":
-      headY = headY === 0 * box ? 15 * box : headY - box;
+      headY = headY === 0 * box ? (boardSize - 1) * box : headY - box;
       break;
     case "down":
-      headY = headY === 15 * box ? 0 : headY + box;
+      headY = headY === (boardSize - 1) * box ? 0 : headY + box;
       break;
     default:
       break;
