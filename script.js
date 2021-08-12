@@ -3,13 +3,16 @@ let context = canvas.getContext("2d");
 let box = 32;
 let direction = "right";
 let boardSize = 16;
-let snakeInitial = 8;
+let snakeInitial = Math.floor(boardSize / 2);
 let snake = [];
+let gameSpeed = 100;
 snake[0] = {
   x: snakeInitial * box,
   y: snakeInitial * box,
 };
 let foodPosition = null;
+let rendered = false;
+let gameInterval;
 
 const createBackground = () => {
   context.fillStyle = "lightgreen";
@@ -17,8 +20,12 @@ const createBackground = () => {
 };
 
 const drawSnake = () => {
+  context.fillStyle = "rgb(46, 104, 30)";
+  context.fillRect(...Object.values(snake[0]), box, box);
   context.fillStyle = "green";
-  snake.forEach((el) => context.fillRect(el.x, el.y, box, box));
+  snake.slice(1).forEach((el) => {
+    context.fillRect(el.x, el.y, box, box);
+  });
 };
 
 const setFood = () => {
@@ -28,23 +35,56 @@ const setFood = () => {
       x: box * Math.floor(boardSize * Math.random()),
       y: box * Math.floor(boardSize * Math.random()),
     };
-  } while (snake.some((el) => el === randomPosition));
+  } while (
+    snake.findIndex(
+      (el) => el.x === randomPosition.x && el.y === randomPosition.y
+    ) !== -1
+  );
   foodPosition = randomPosition;
 };
 
 const drawFood = () => {
-  context.fillStyle = "red";
+  context.fillStyle = "yellow";
   context.fillRect(foodPosition.x, foodPosition.y, box, box);
 };
 
 const gameStart = () => {
+  rendered = true;
   createBackground();
   drawSnake();
   if (
-    foodPosition === null ||
-    (foodPosition?.x === snake[0].x && foodPosition?.y === snake[0].y)
-  )
+    snake
+      .slice(1)
+      .findIndex((el) => el.x === snake[0].x && el.y === snake[0].y) !== -1
+  ) {
+    window.clearInterval(gameInterval);
+    alert("You lose!");
+    return;
+  }
+  if (snake.length === boardSize ** 2) {
+    window.clearInterval(gameInterval);
+    alert("You win!");
+    return;
+  }
+
+  if (foodPosition === null) setFood();
+  if (foodPosition?.x === snake[0].x && foodPosition?.y === snake[0].y) {
     setFood();
+    switch (direction) {
+      case "left":
+        snake.push({ x: snake[0].x + box, y: snake[0].y });
+        break;
+      case "right":
+        snake.push({ x: snake[0].x - box, y: snake[0].y });
+        break;
+      case "up":
+        snake.push({ x: snake[0] + box, y: snake[0].y + box });
+        break;
+      case "down":
+        snake.push({ x: snake[0].x, y: snake[0].y - box });
+        break;
+    }
+  }
   drawFood();
 
   let { x: headX, y: headY } = snake[0];
@@ -69,29 +109,32 @@ const gameStart = () => {
 };
 
 const refreshRender = () => {
-  window.setInterval(() => {
+  gameInterval = window.setInterval(() => {
     gameStart();
-  }, 100);
+  }, gameSpeed);
 };
 
 const changeDirection = (pressKeyEvent) => {
-  switch (pressKeyEvent.key) {
-    case "ArrowLeft":
-      direction = direction === "right" ? "right" : "left";
-      break;
-    case "ArrowRight":
-      direction = direction === "left" ? "left" : "right";
-      break;
-    case "ArrowUp":
-      direction = direction === "down" ? "down" : "up";
-      break;
-    case "ArrowDown":
-      direction = direction === "up" ? "up" : "down";
-      break;
-    default:
-      break;
+  if (rendered) {
+    switch (pressKeyEvent.key) {
+      case "ArrowLeft":
+        direction = direction === "right" ? "right" : "left";
+        break;
+      case "ArrowRight":
+        direction = direction === "left" ? "left" : "right";
+        break;
+      case "ArrowUp":
+        direction = direction === "down" ? "down" : "up";
+        break;
+      case "ArrowDown":
+        direction = direction === "up" ? "up" : "down";
+        break;
+      default:
+        break;
+    }
   }
+  rendered = false;
 };
 
 window.addEventListener("keydown", changeDirection);
-let gameRender = refreshRender();
+refreshRender();
